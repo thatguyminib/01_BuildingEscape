@@ -7,6 +7,7 @@
 #include "Grabber.generated.h"
 
 
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGESCAPE_API UGrabber : public UActorComponent
 {
@@ -27,6 +28,23 @@ public:
 private:
 	//How far ahead of the player can we reach in cm
 	float Reach = 100.f;
-		
+
+	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 	
+	UInputComponent* InputComp = nullptr;
+
+	// Ray-cast and grab what's in reach
+	void Grab();
+
+	// Release object that is grabbed
+	void Release();
+
+	// Find (assumed) Attached physics handle
+	void FindPhysicsHandleComponent();
+
+	// Setup (assumed) attached input component
+	void SetupInputComponent();
+
+	// return hit for first physics bods in reach
+	const FHitResult GetFirstPhysicsBodyInReach();
 };
