@@ -3,10 +3,11 @@
 #pragma once
 
 #include "Engine.h"
+#include "OpenDoor.h"
 #include "Components/ActorComponent.h"
 #include "Grabber.generated.h"
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGrabber);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGESCAPE_API UGrabber : public UActorComponent
@@ -25,6 +26,21 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	// detect if we are looking at a key or not
+	UPROPERTY(BlueprintAssignable)
+	FGrabber InteractText;
+
+	UPROPERTY(BlueprintAssignable)
+	FGrabber InteractWithDoor;
+
+	UPROPERTY(BlueprintAssignable)
+	FGrabber NeedKey;
+
+	UPROPERTY(BlueprintAssignable)
+	FGrabber PickUpText;
+
+	bool HasKey;
+
 private:
 	//How far ahead of the player can we reach in cm
 	float Reach = 100.f;
@@ -39,6 +55,9 @@ private:
 	// Release object that is grabbed
 	void Release();
 
+	// Pick up the actual key
+	void PickUpKey();
+
 	// Find (assumed) Attached physics handle
 	void FindPhysicsHandleComponent();
 
@@ -47,6 +66,18 @@ private:
 
 	// return hit for first physics bods in reach
 	const FHitResult GetFirstPhysicsBodyInReach();
+	
+	// Get key that is hit
+	AActor* ActorHit;
+
+	//Get door that is hit
+	AActor* DoorActorHit;
+
+	// detect if we are looking at a key or not
+	void GetKeyInReach();
+
+	// detect if we are looking at a door
+	void GetDoorInReach();
 
 	// Return current start of reach line
 	FVector GetReachLineStart();

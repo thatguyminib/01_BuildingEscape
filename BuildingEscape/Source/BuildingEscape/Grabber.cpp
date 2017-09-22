@@ -43,6 +43,7 @@ void UGrabber::SetupInputComponent()
 	if (InputComp) {
 		InputComp->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
 		InputComp->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+		InputComp->BindAction("Key", IE_Pressed, this, &UGrabber::PickUpKey);
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("Missing Input Component from %s"), *(GetOwner()->GetName()))
@@ -77,6 +78,15 @@ void UGrabber::Release()
 	PhysicsHandle->ReleaseComponent();
 }
 
+void UGrabber::PickUpKey()
+{
+	if (!ActorHit) { return; }
+	HasKey = true;
+	//UOpenDoor().OnOpen.Broadcast();
+	ActorHit->Destroy();
+	
+}
+
 
 // Called every frame
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -89,9 +99,12 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		// move the object we are holding
 		PhysicsHandle->SetTargetLocation(GetReachLineEnd());
 	}
-	
-
-	
+	GetKeyInReach();
+	GetDoorInReach();
+	auto HitObject = GetFirstPhysicsBodyInReach();
+	if (HitObject.GetActor()) {
+		PickUpText.Broadcast();
+	}
 }
 
 const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
@@ -108,6 +121,51 @@ const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
 		TraceParameters
 	);
 	return HitResult;
+}
+
+void UGrabber::GetKeyInReach()
+{
+	/// Line-trace out and see if we are hitting a key
+	FHitResult HitResult;
+	FCollisionQueryParams TraceParameters(FName(TEXT("")), false, GetOwner());
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT HitResult,
+		GetReachLineStart(),
+		GetReachLineEnd(),
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_GameTraceChannel1),
+		TraceParameters
+	);
+
+	ActorHit = HitResult.GetActor();
+	if (ActorHit) {
+		UE_LOG(LogTemp, Error, TEXT("Hitting %s"), *(ActorHit->GetName()))
+		InteractText.Broadcast();
+	}
+	
+}
+
+void UGrabber::GetDoorInReach()
+{
+	/// Line-trace out and see if we are hitting a key
+	FHitResult HitResult;
+	FCollisionQueryParams TraceParameters(FName(TEXT("")), false, GetOwner());
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT HitResult,
+		GetReachLineStart(),
+		GetReachLineEnd(),
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_GameTraceChannel2),
+		TraceParameters
+	);
+
+	DoorActorHit = HitResult.GetActor();
+	if (DoorActorHit && HasKey) {
+		UE_LOG(LogTemp, Error, TEXT("Hitting %s"), *(DoorActorHit->GetName()))
+			InteractWithDoor.Broadcast();
+	}
+	else if (DoorActorHit && !HasKey) {
+		NeedKey.Broadcast();
+	}
+
 }
 
 FVector UGrabber::GetReachLineStart()

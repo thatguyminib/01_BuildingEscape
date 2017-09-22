@@ -34,13 +34,13 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// Poll the Trigger Volume
-	if (GetTotalMassOfActorsOnPlate() > TriggerMass){  
-		OnOpen.Broadcast();
-	}
-	else
-	{
-		OnClose.Broadcast();
-	}
+	//if (*MyGrabber->HasKey){  
+	//	OnOpen.Broadcast();
+	//}
+	//else
+	//{
+	//	//OnClose.Broadcast();
+	//}
 			
 }
 
@@ -58,7 +58,7 @@ float UOpenDoor::GetTotalMassOfActorsOnPlate()
 	FString ActorName;
 	for (const auto* Actor : OverlappingActors) {
 		TotalMass += Actor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
-		UE_LOG(LogTemp,Warning, TEXT("%s on pressure plate"), *Actor->GetName())
+		//UE_LOG(LogTemp,Warning, TEXT("%s on pressure plate"), *Actor->GetName())
 	}
 
 
